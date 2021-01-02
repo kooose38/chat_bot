@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { useState, useEffect, useCallback } from 'react';
-import defaultDataset from "./db.js";
 import { Chats, AnswersList } from "./components/index";
 import FormDialog from './components/forms/FormDialog.jsx';
+import { db } from './firebase/index.js';
 
 
 const App = () => {
    const
-      [data, setDate] = useState(defaultDataset),
+      [data, setDate] = useState(),
       [initId, setInitId] = useState("init"),
       [answer, setAnswer] = useState([]),   //切り替える
       [chats, setChats] = useState([]),  // 履歴を残すので、前のデータはそのまま残す
@@ -40,8 +40,8 @@ const App = () => {
             break;
 
          default:
-            displayChange(nextId);
             setInitId(nextId)
+            displayChange(nextId);
             break;
       }
    };
@@ -57,9 +57,24 @@ const App = () => {
       }, 1000)
    }, [setChats])
 
-
    useEffect(() => {
-      switchChats(initId);
+      (async () => {
+         if (!data) {
+            const prev = {};
+            await db.collection("questions").get().then((snapshots) => {
+               snapshots.forEach(doc => {
+                  const id = doc.id;
+                  const data = doc.data();
+                  prev[id] = data;
+               });
+               setDate(prev)
+               console.log(data);
+            }).then(() => {
+               switchChats(initId);
+
+            })
+         }
+      })();
    }, []);
 
    useEffect(() => {

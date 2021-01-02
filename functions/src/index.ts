@@ -1,9 +1,25 @@
-import * as functions from 'firebase-functions';
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+admin.initializeApp();
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+const db = admin.firestore();
+
+export const addResponse = functions.region("asia-northeast2").https.onRequest(async (req: any, res: any) => {
+   if (req.method !== "POST") {
+      res.status(405).json([{ statusCode: 405, error: "Invalid Request" }]);
+   } else {
+
+      try {
+         const dataset = req.body;  //オブジェクト
+         for (const key of Object.keys(dataset)) {
+            const data = dataset[key];
+
+            await db.collection("questions").doc(key).set(data)
+         }
+         res.status(200).json([{ statusCode: 200, message: "successfully" }]);
+      } catch (e) {
+         res.status(500).json([{ statusCode: 500, error: "fail ..." }])
+      }
+
+   }
+});

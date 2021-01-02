@@ -4,7 +4,6 @@ import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
 import DialogTitle from '@material-ui/core/DialogTitle';
 
 const FormDialog = ({ open, setOpen }) => {
@@ -31,7 +30,7 @@ const FormDialog = ({ open, setOpen }) => {
       return regex.test(email) //true || false 
    };
 
-   const submitForm = async () => {
+   const submitForm = async (name, email, description) => {
       if (name === "" || email === "" || description === "") {
          alert("入力してください。")
          return;
@@ -88,7 +87,7 @@ const FormDialog = ({ open, setOpen }) => {
             <Button onClick={handleClose} color="primary">
                キャンセル
         </Button>
-            <Button onClick={submitForm} color="primary" autoFocus>
+            <Button onClick={() => submitForm(name, email, description)} color="primary" autoFocus>
                送信する
         </Button>
          </DialogActions>
