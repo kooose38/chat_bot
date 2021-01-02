@@ -6,27 +6,25 @@ import { db } from './firebase/index.js';
 
 const App = () => {
    const
+      [data, setData] = useState(),
       [initId, setInitId] = useState("init"),
       [answer, setAnswer] = useState([]),   //切り替える
       [chats, setChats] = useState([]),  // 履歴を残すので、前のデータはそのまま残す
       [open, setOpen] = useState(false);
    //QuestionのChat,answerのデータセット 
-   const displayChange = (nextId) => {
-      const nextQuestion = data[nextId].question;
+   const displayChange = (data) => {
+      const nextQuestion = data.question;
+      const initAnswers = data.answers;
       const chatData = {
          type: "question",
          content: nextQuestion,
       }
-      const initAnswers = data[nextId].answers;
       setAnswer(initAnswers);
       setChats(prevState => [...prevState, chatData]);
    };
    //nextIdによる振り分け
    const switchChats = (nextId) => {
       switch (true) {
-         case (nextId === "init"):
-            displayChange(nextId);
-            break;
          case (nextId === "contact"):
             setOpen(true)
             break;
@@ -39,7 +37,8 @@ const App = () => {
 
          default:
             setInitId(nextId)
-            displayChange(nextId);
+            const nextData = data[nextId];
+            displayChange(nextData);
             break;
       }
    };
@@ -54,20 +53,23 @@ const App = () => {
          switchChats(nextId)
       }, 1000)
    }, [setChats]);
-   //useStateでデータを持たせるとエラーが起きる
-   const data = {};
-
+   //レンダー時に初期値dataはundefinedになるので、最初のdataとしてprev{}をinitialDataとする。
    useEffect(() => {
       (async () => {
-         await db.collection("questions").get().then((snapshots) => {
-            snapshots.forEach(doc => {
-               const id = doc.id;
-               const DBdata = doc.data();
-               data[id] = DBdata;
-            });
-         }).then(() => {
-            switchChats(initId);
-         })
+         if (!data) {
+            const prev = {};
+            await db.collection("questions").get().then((snapshots) => {
+               snapshots.forEach(doc => {
+                  const id = doc.id;
+                  const DBdata = doc.data();
+                  prev[id] = DBdata;
+               });
+               setData(prev)
+            }).then(() => {
+               const initData = prev[initId]
+               displayChange(initData);
+            })
+         }
       })();
    }, []);
 
