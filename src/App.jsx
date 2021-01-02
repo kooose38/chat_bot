@@ -4,10 +4,8 @@ import { Chats, AnswersList } from "./components/index";
 import FormDialog from './components/forms/FormDialog.jsx';
 import { db } from './firebase/index.js';
 
-
 const App = () => {
    const
-      [data, setDate] = useState(),
       [initId, setInitId] = useState("init"),
       [answer, setAnswer] = useState([]),   //切り替える
       [chats, setChats] = useState([]),  // 履歴を残すので、前のデータはそのまま残す
@@ -55,25 +53,21 @@ const App = () => {
       setTimeout(() => {
          switchChats(nextId)
       }, 1000)
-   }, [setChats])
+   }, [setChats]);
+   //useStateでデータを持たせるとエラーが起きる
+   const data = {};
 
    useEffect(() => {
       (async () => {
-         if (!data) {
-            const prev = {};
-            await db.collection("questions").get().then((snapshots) => {
-               snapshots.forEach(doc => {
-                  const id = doc.id;
-                  const data = doc.data();
-                  prev[id] = data;
-               });
-               setDate(prev)
-               console.log(data);
-            }).then(() => {
-               switchChats(initId);
-
-            })
-         }
+         await db.collection("questions").get().then((snapshots) => {
+            snapshots.forEach(doc => {
+               const id = doc.id;
+               const DBdata = doc.data();
+               data[id] = DBdata;
+            });
+         }).then(() => {
+            switchChats(initId);
+         })
       })();
    }, []);
 
